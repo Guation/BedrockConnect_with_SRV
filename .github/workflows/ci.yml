@@ -17,14 +17,17 @@ jobs:
     - name: Patch codes
       run: |
         cd BedrockConnect
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
         git am < ../0001-srv-patch.patch
 
     - name: Set up OpenJDK
       uses: actions/setup-java@v4
       with:
         java-version: '21'
-        distribution: 'adopt'
+        distribution: 'temurin'
         cache: maven
+        cache-dependency-path: BedrockConnect/serverlist-server/pom.xml
 
     - name: Build with maven
       run: |
