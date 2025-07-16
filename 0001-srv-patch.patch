@@ -1,0 +1,166 @@
+From 5a60fcea814b95b9e89056736c12acace22ed206 Mon Sep 17 00:00:00 2001
+From: Guation <guation@163.com>
+Date: Wed, 16 Jul 2025 17:03:23 +0800
+Subject: [PATCH] srv patch
+
+---
+ docker/custom-servers/custom_servers.json     |  8 ++--
+ .../config/Custom/CustomEntry.java            |  2 +-
+ .../bedrockconnect/server/PacketHandler.java  | 41 +++++++++++++++++++
+ .../bedrockconnect/server/gui/UIForms.java    | 16 ++++----
+ 4 files changed, 54 insertions(+), 13 deletions(-)
+
+diff --git a/docker/custom-servers/custom_servers.json b/docker/custom-servers/custom_servers.json
+index 67699e9..83070ca 100644
+--- a/docker/custom-servers/custom_servers.json
++++ b/docker/custom-servers/custom_servers.json
+@@ -1,14 +1,14 @@
+ [
+ 	{
+ 		"name": "My Custom Server 1",
+-		"iconUrl": "https://i.imgur.com/3BmFZRE.png",
++		"iconUrl": "https://image.guation.cn/nhumQVP.png",
+ 		"address": "mc1.example.com",
+-		"port": 19132
++		"port": 0
+ 	},
+ 	{
+ 		"name": "My Custom Server 2",
+-		"iconUrl": "https://i.imgur.com/3BmFZRE.png",
++		"iconUrl": "https://image.guation.cn/nhumQVP.png",
+ 		"address": "mc2.example.com",
+-		"port": 19132
++		"port": 0
+ 	}
+ ]
+\ No newline at end of file
+diff --git a/serverlist-server/src/main/com/pyratron/pugmatt/bedrockconnect/config/Custom/CustomEntry.java b/serverlist-server/src/main/com/pyratron/pugmatt/bedrockconnect/config/Custom/CustomEntry.java
+index 82cbb9c..11b5472 100644
+--- a/serverlist-server/src/main/com/pyratron/pugmatt/bedrockconnect/config/Custom/CustomEntry.java
++++ b/serverlist-server/src/main/com/pyratron/pugmatt/bedrockconnect/config/Custom/CustomEntry.java
+@@ -1,7 +1,7 @@
+ package main.com.pyratron.pugmatt.bedrockconnect.config.Custom;
+ 
+ public class CustomEntry {
+-    public final String DEFAULT_ICON = "https://i.imgur.com/3BmFZRE.png";
++    public final String DEFAULT_ICON = "https://image.guation.cn/nhumQVP.png";
+ 
+     private String name;
+     private String iconUrl;
+diff --git a/serverlist-server/src/main/com/pyratron/pugmatt/bedrockconnect/server/PacketHandler.java b/serverlist-server/src/main/com/pyratron/pugmatt/bedrockconnect/server/PacketHandler.java
+index 752d249..65d474e 100644
+--- a/serverlist-server/src/main/com/pyratron/pugmatt/bedrockconnect/server/PacketHandler.java
++++ b/serverlist-server/src/main/com/pyratron/pugmatt/bedrockconnect/server/PacketHandler.java
+@@ -27,6 +27,7 @@ import org.jose4j.json.internal.json_simple.JSONObject;
+ import org.jose4j.jws.JsonWebSignature;
+ import org.jose4j.lang.JoseException;
+ 
++import java.net.InetSocketAddress;
+ import java.security.PublicKey;
+ import java.security.interfaces.ECPublicKey;
+ import java.util.*;
+@@ -35,6 +36,11 @@ import java.net.UnknownHostException;
+ import java.util.concurrent.ScheduledThreadPoolExecutor;
+ import java.util.concurrent.TimeUnit;
+ 
++import javax.naming.directory.Attribute;
++import javax.naming.directory.Attributes;
++import javax.naming.directory.DirContext;
++import javax.naming.directory.InitialDirContext;
++
+ public class PacketHandler implements BedrockPacketHandler {
+     private BedrockServerSession session;
+ 
+@@ -71,6 +77,36 @@ public class PacketHandler implements BedrockPacketHandler {
+         return hostname;
+     }
+ 
++    public InetSocketAddress getSRV(String hostname) {
++         try {
++             String domain = "_minecraft._udp." + hostname;
++             DirContext ctx = new InitialDirContext();
++             Attributes attrs = ctx.getAttributes(
++                     "dns:/" + domain,
++                     new String[]{"SRV"}
++             );
++             Attribute srvAttr = attrs.get("SRV");
++             if (srvAttr != null && srvAttr.size() != 0) {
++                 String recordStr = (String) srvAttr.get(0);
++                 String[] parts = recordStr.split("\\s+");
++                 if (parts.length == 4) {
++                    int port = Integer.parseInt(parts[2]);
++                    String target = parts[3].endsWith(".") ?
++                            parts[3].substring(0, parts[3].length() - 1) :
++                            parts[3];
++                     return new InetSocketAddress(target, port);
++                 } else {
++                     BedrockConnect.logger.error("The SRV record cannot be parsed. {}", recordStr);
++                 }
++             } else {
++                 BedrockConnect.logger.warn("There is no SRV record for the hostname.");
++             }
++         } catch (Exception ex) {
++             BedrockConnect.logger.error("Error retrieving SRV from hostname", ex);
++         }
++         return new InetSocketAddress(hostname, 19132);
++    }
++
+     @Override
+     public PacketSignal handlePacket(BedrockPacket packet) {
+         if (BedrockConnect.getConfig().isDebugEnabled() && !(packet instanceof PlayerAuthInputPacket)) {
+@@ -422,6 +458,11 @@ public class PacketHandler implements BedrockPacketHandler {
+     public void transfer(String ip, int port) {
+         try {
+             TransferPacket tp = new TransferPacket();
++            if (port == 0) {
++                InetSocketAddress address = getSRV(ip);
++                ip = address.getHostName();
++                port = address.getPort();
++            }
+             if(BedrockConnect.getConfig().canFetchIps() && UIComponents.isDomain(ip)) {
+                 tp.setAddress(getIP(ip));
+             } else {
+diff --git a/serverlist-server/src/main/com/pyratron/pugmatt/bedrockconnect/server/gui/UIForms.java b/serverlist-server/src/main/com/pyratron/pugmatt/bedrockconnect/server/gui/UIForms.java
+index 874372f..9f1be83 100644
+--- a/serverlist-server/src/main/com/pyratron/pugmatt/bedrockconnect/server/gui/UIForms.java
++++ b/serverlist-server/src/main/com/pyratron/pugmatt/bedrockconnect/server/gui/UIForms.java
+@@ -21,7 +21,7 @@ public class UIForms {
+     public static JsonArray manageListButtons = new JsonArray();
+     public static JsonArray featuredServerButtons = new JsonArray();
+ 
+-    public static final int DEFAULT_PORT = 19132;
++    public static final int DEFAULT_PORT = 0;
+ 
+     static {
+         mainMenuButtons.add(UIComponents.createButton(BedrockConnect.getConfig().getLanguage().getWording("main", "connectBtn")));
+@@ -35,12 +35,12 @@ public class UIForms {
+         manageListButtons.add(UIComponents.createButton(BedrockConnect.getConfig().getLanguage().getWording("manage", "editBtn")));
+         manageListButtons.add(UIComponents.createButton(removeBtnText));
+ 
+-        featuredServerButtons.add(UIComponents.createButton("The Hive", "https://i.imgur.com/RfxfPGz.png", "url"));
+-        featuredServerButtons.add(UIComponents.createButton("CubeCraft Games", "https://i.imgur.com/aFH1NUr.png", "url"));
+-        featuredServerButtons.add(UIComponents.createButton("Lifeboat Network", "https://i.imgur.com/LoI7bYx.png", "url"));
+-        featuredServerButtons.add(UIComponents.createButton("Mineville", "https://i.imgur.com/0K4TDut.png", "url"));
+-        featuredServerButtons.add(UIComponents.createButton("Galaxite", "https://i.imgur.com/VxXO8Of.png", "url"));
+-        featuredServerButtons.add(UIComponents.createButton("Enchanted Dragons", "https://i.imgur.com/1Fh9CBf.png", "url"));
++        featuredServerButtons.add(UIComponents.createButton("The Hive", "https://image.guation.cn/RfxfPGz.png", "url"));
++        featuredServerButtons.add(UIComponents.createButton("CubeCraft Games", "https://image.guation.cn/aFH1NUr.png", "url"));
++        featuredServerButtons.add(UIComponents.createButton("Lifeboat Network", "https://image.guation.cn/LoI7bYx.png", "url"));
++        featuredServerButtons.add(UIComponents.createButton("Mineville", "https://image.guation.cn/0K4TDut.png", "url"));
++        featuredServerButtons.add(UIComponents.createButton("Galaxite", "https://image.guation.cn/VxXO8Of.png", "url"));
++        featuredServerButtons.add(UIComponents.createButton("Enchanted Dragons", "https://image.guation.cn/1Fh9CBf.png", "url"));
+     }
+ 
+     public static ModalFormRequestPacket createMain(List<String> servers, BedrockServerSession session) {
+@@ -59,7 +59,7 @@ public class UIForms {
+             buttons.add(UIComponents.createButton(BedrockConnect.getConfig().getLanguage().getWording("main", "exitBtn")));
+ 
+         for(int i=0;i<servers.size();i++) {
+-            buttons.add(UIComponents.createButton(UIComponents.getServerDisplayName(servers.get(i)), "https://i.imgur.com/nhumQVP.png", "url"));
++            buttons.add(UIComponents.createButton(UIComponents.getServerDisplayName(servers.get(i)), "https://image.guation.cn/nhumQVP.png", "url"));
+         }
+ 
+         for (CustomEntry cs : customServers) {
+-- 
+2.34.1
+

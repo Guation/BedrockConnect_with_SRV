@@ -1,0 +1,3 @@
+[submodule "BedrockConnect"]
+	path = BedrockConnect
+	url = git@github.com:Pugmatt/BedrockConnect.git

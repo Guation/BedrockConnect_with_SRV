@@ -1,0 +1,66 @@
+{
+  "motd": {
+    "heading": "每日公告",
+    "continueBtn": "服务器列表"
+  },
+  "serverInfo": {
+    "motd": "Join To Open Server List",
+    "subMotd": "BedrockConnect Server List"
+  },
+  "main": {
+    "heading": "服务器列表",
+    "connectBtn" : "直接连接",
+    "manageBtn" : "管理服务器列表",
+    "exitBtn": "离开BedrockConnect"
+  },
+  "manage": {
+    "heading": "管理服务器列表",
+    "addBtn": "添加服务器",
+    "removeBtn": "删除服务器",
+    "editBtn": "编辑服务器"
+  },
+  "connect": {
+    "heading": "直接连接",
+    "addressTitle": "服务器地址",
+    "addressPlaceholder": "请输入服务器地址",
+    "portTitle": "服务器端口",
+    "portPlaceholder": "请输入端口（不知道就填0）",
+    "displayNameTitle": "（可选）服务器名称",
+    "addToggle": "添加到服务器列表"
+  },
+  "add": {
+    "heading": "添加服务器"
+  },
+  "edit": {
+    "heading": "编辑服务器",
+    "chooseHeading": "选择服务器",
+    "serverDropdown": "服务器"
+  },
+  "remove": {
+    "heading": "删除服务器",
+    "serverDropdown": "服务器"
+  },
+  "serverGroup": {
+    "backBtn": "回到服务器列表"
+  },
+  "error": {
+    "heading": "错误",
+    "addressLarge": "地址过长。（最多253字符）",
+    "portLarge": "端口过长。（最多10字符）",
+    "nameLarge": "名称过长。（最多36字符）",
+    "invalidAddress": "需要一个有效的服务器地址",
+    "invalidPort": "端口必须是数字",
+    "invalidName": "名称只能是数字字母或空格",
+    "serverLimit": "服务器数量上限，最多只能添加 %MAX_SERVERS% 个服务器。",
+    "invalidUserServer": "无效的服务器地址",
+    "invalidServerConnect": "请输入有效的服务器地址。",
+    "invalidServerRemove": "无法移除服务器",
+    "invalidServerEdit": "无法编辑服务器",
+    "transferError": "无法连接到服务器，无效地址。"
+  },
+  "disconnect": {
+    "inactivity": "因为AFK被踢出游戏",
+    "exit": "再见",
+    "dataError": "遇到故障，到GitHub反馈。"
+  }
+}
