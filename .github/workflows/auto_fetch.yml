@@ -1,0 +1,33 @@
+name: Auto fetch
+
+on:
+  schedule:
+    branches:
+      - main
+    - cron: '0 0 * * *'  # 每天 UTC 0:00
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+        fetch-depth: 1
+
+    - name: Update submodule
+      run: |
+        cd BedrockConnect
+        latest_release=$(curl https://api.github.com/repos/Pugmatt/BedrockConnect/releases/latest 2>/dev/null | jq .target_commitish -r)
+        [ "$latest_release" == "$(git rev-parse HEAD)" ] && exit 0
+        git fetch
+        git reset --hard $latest_release
+        cd ..
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add .
+        git commit -m "Auto-update at $(date)"
+        git push
