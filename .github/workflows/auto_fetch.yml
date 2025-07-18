@@ -3,6 +3,7 @@ name: Auto fetch
 on:
   schedule:
     - cron: '0 0 * * *'  # 每天 UTC 0:00
+  workflow_dispatch:
 
 jobs:
   update:
