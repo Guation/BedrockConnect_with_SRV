@@ -27,6 +27,7 @@ A: 不支持基于权重的负载均衡，固定使用DNS服务器返回的第�
 
 Q: 如何验证SRV记录配置？
 
+A: 
 ```shell
 $ dig +noall +answer mc.example.com A
 mc.example.com.	305	IN	A	xx.xx.xx.xx
