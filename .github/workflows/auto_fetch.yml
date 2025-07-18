@@ -2,8 +2,6 @@ name: Auto fetch
 
 on:
   schedule:
-    branches:
-      - main
     - cron: '0 0 * * *'  # 每天 UTC 0:00
 
 jobs:
