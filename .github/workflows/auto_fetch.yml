@@ -20,7 +20,6 @@ jobs:
 
     - name: Update submodule
       run: |
-        set -x
         cd BedrockConnect
         git fetch
         latest_tag=$(curl https://api.github.com/repos/Pugmatt/BedrockConnect/releases/latest 2>/dev/null | jq .tag_name -r)
