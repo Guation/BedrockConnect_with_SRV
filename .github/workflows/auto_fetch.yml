@@ -15,7 +15,6 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
-        fetch-depth: 1
         token: ${{ secrets.PUSH_TOKEN }}
 
     - name: Update submodule
@@ -24,14 +23,13 @@ jobs:
         cd BedrockConnect
         git fetch
         latest_tag=$(curl https://api.github.com/repos/Pugmatt/BedrockConnect/releases/latest 2>/dev/null | jq .tag_name -r)
-        latest_commit=$(curl https://api.github.com/repos/Pugmatt/BedrockConnect/git/ref/tags/${latest_tag} | jq .object.sha -r)
-        now_commit=$(git rev-parse HEAD)
-        echo latest_commit=${latest_commit} now_commit=${now_commit}
-        [ "$latest_commit" == "$now_commit" ] && exit 0
+        now_tag=$(git tag --points-at HEAD)
+        echo latest_tag=${latest_tag} now_tag=${now_tag}
+        [ "$latest_tag" == "$now_tag" ] && exit 0
         echo Start update BedrockConnect.
         echo Before the update.
         git show HEAD --shortstat
-        git reset --hard ${latest_commit}
+        git reset --hard $(git show-ref ${latest_tag} | awk '{print $1}')
         echo After the update.
         git show HEAD --shortstat
         cd ..
