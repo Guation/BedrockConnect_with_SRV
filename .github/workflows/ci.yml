@@ -12,7 +12,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
-        fetch-depth: 1
+        fetch-depth: 0
 
     - name: Patch codes
       run: |
@@ -33,14 +33,28 @@ jobs:
       run: |
         cd BedrockConnect/serverlist-server
         mvn -B package
+        cp -f target/BedrockConnect-1.0-SNAPSHOT.jar ../..
 
-    - name: Packaging and archiving
+    - name: Set up environment variables
+      id: vars
+      shell: bash
       run: |
-        tar -czvf BedrockConnect_with_SRV.tgz config.yml LICENSE server.json zh_CN.json -C BedrockConnect/serverlist-server/target BedrockConnect-1.0-SNAPSHOT.jar
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_OUTPUT
+        TAG_NAME=$(git tag --points-at HEAD)
+        echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+        ARTIFACT_NAME="BedrockConnect-$TAG_NAME+$SHORT_SHA"
+        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+        echo "Artifact name will be: $ARTIFACT_NAME"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: build-artifact
-        path: ./BedrockConnect_with_SRV.tgz
+        name: ${{ steps.vars.outputs.ARTIFACT_NAME }}
+        path: |
+          config.yml
+          LICENSE
+          server.json
+          zh_CN.json
+          BedrockConnect-1.0-SNAPSHOT.jar
         if-no-files-found: error
