@@ -14,6 +14,19 @@ jobs:
         submodules: 'recursive'
         fetch-depth: 0
 
+    - name: Set up environment variables
+      id: vars
+      shell: bash
+      run: |
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_OUTPUT
+        cd BedrockConnect
+        TAG_NAME=$(git tag --points-at HEAD)
+        echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+        ARTIFACT_NAME="BedrockConnect-$TAG_NAME+$SHORT_SHA"
+        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+        echo "Artifact name will be: $ARTIFACT_NAME"
+
     - name: Patch codes
       run: |
         cd BedrockConnect
@@ -34,19 +47,6 @@ jobs:
         cd BedrockConnect/serverlist-server
         mvn -B package
         cp -f target/BedrockConnect-1.0-SNAPSHOT.jar ../..
-
-    - name: Set up environment variables
-      id: vars
-      shell: bash
-      run: |
-        SHORT_SHA=$(git rev-parse --short HEAD)
-        echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_OUTPUT
-        cd BedrockConnect/serverlist-server
-        TAG_NAME=$(git tag --points-at HEAD)
-        echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
-        ARTIFACT_NAME="BedrockConnect-$TAG_NAME+$SHORT_SHA"
-        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
-        echo "Artifact name will be: $ARTIFACT_NAME"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
