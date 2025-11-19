@@ -41,6 +41,7 @@ jobs:
       run: |
         SHORT_SHA=$(git rev-parse --short HEAD)
         echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_OUTPUT
+        cd BedrockConnect/serverlist-server
         TAG_NAME=$(git tag --points-at HEAD)
         echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
         ARTIFACT_NAME="BedrockConnect-$TAG_NAME+$SHORT_SHA"
