@@ -23,7 +23,7 @@ jobs:
         cd BedrockConnect
         TAG_NAME=$(git tag --points-at HEAD)
         echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
-        ARTIFACT_NAME="BedrockConnect-$TAG_NAME+$SHORT_SHA"
+        ARTIFACT_NAME="BedrockConnect_with_SRV-$TAG_NAME+$SHORT_SHA"
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         echo "Artifact name will be: $ARTIFACT_NAME"
 
